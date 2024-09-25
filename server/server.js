@@ -1,5 +1,6 @@
 import express from "express";
-import getProducts from "./api/products";
+import { getProducts } from "./api/products.js";
+import { Redis } from "ioredis";
 
 const app = express();
 
@@ -8,7 +9,7 @@ app.get("/", (req, res) => {
 });
 
 app.get("/products", async (req, res) => {
-  const products = await getProducts;
+  const products = await getProducts();
 
   res.json({ products });
 });
