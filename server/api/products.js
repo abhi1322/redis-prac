@@ -17,3 +17,14 @@ export const getProducts = () =>
       });
     }, 2000);
   });
+
+export const getProductDetails = (id) =>
+  new Promise((resolve, reject) => {
+    setTimeout(() => {
+      resolve({
+        id,
+        name: `Product ${id}`,
+        price: Math.floor(Math.random() * id * 100),
+      });
+    }, 2000);
+  });

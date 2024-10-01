@@ -1,5 +1,5 @@
 import express from "express";
-import { getProducts } from "./api/products.js";
+import { getProductDetails, getProducts } from "./api/products.js";
 import Redis from "ioredis";
 
 const app = express();
@@ -18,18 +18,50 @@ app.get("/", (req, res) => {
 });
 
 app.get("/products", async (req, res) => {
-  const isExist = await redis.exists("products");
+  let products = await redis.exists("products");
 
-  if (isExist) {
+  if (products) {
     const cachedProducts = await redis.get("products");
     return res.json({ products: JSON.parse(cachedProducts) });
   }
 
-  const products = await getProducts();
+  products = await getProducts();
 
   redis.setex("products", 60, JSON.stringify(products)); // Cache for 1 minute
 
   res.json({ products });
+});
+
+app.get("/product/:id", async (req, res) => {
+  const id = req.params.id;
+  const key = `product:${id}`;
+
+  let product = await redis.get(key);
+
+  if (product) {
+    return res.json({ product: JSON.parse(product) });
+  }
+
+  product = await getProductDetails(id);
+  await redis.set(key, JSON.stringify(product));
+
+  res.json({ product });
+});
+
+app.get("/order/:id", async (req, res) => {
+  const productID = req.params.id;
+  const key = `product:${productID}`;
+
+  //any mutation to database here
+  // like creating new order
+  // reducing the product stock in database
+
+  redis.del(key);
+
+  return res.json({
+    message:
+      "Order has been placed successfully for product id " + productID + ".",
+  });
 });
 
 app.listen(3000, () => {
